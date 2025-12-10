@@ -888,6 +888,13 @@ async def main():
     try:
         # Suppress HTTP request logs
         logging.getLogger("httpx").setLevel(logging.WARNING)
+
+        # Get the directory where this script is located
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Change to script directory for relative file paths
+        os.chdir(script_dir)
+
         input_pdf_file_path = "160301289-Warren-Buffett-Katharine-Graham-Letter.pdf"
         max_test_pages = 0
         skip_first_n_pages = 0
