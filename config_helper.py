@@ -9,7 +9,7 @@ from decouple import Config as DecoupleConfig, RepositoryEnv
 
 
 def update_env_file(key, value):
-    """Update a value in the .env file"""
+    """Update a value in .env file"""
     env_file = ".env"
 
     # Read current content
@@ -83,15 +83,17 @@ def main():
         update_env_file("USE_LOCAL_LLM", "False")
         print("🚀 Switched to OpenAI. Make sure OPENAI_API_KEY is set in .env")
 
-elif command == "claude":
+    elif command == "claude":
         update_env_file("API_PROVIDER", "CLAUDE")
         update_env_file("USE_LOCAL_LLM", "False")
         print("🚀 Switched to Claude. Make sure ANTHROPIC_API_KEY is set in .env")
-    
+
     elif command == "lm-studio":
         update_env_file("API_PROVIDER", "LM_STUDIO")
         update_env_file("USE_LOCAL_LLM", "False")
-        print("🚀 Switched to LM Studio. Make sure LM Studio is running with a model loaded")
+        print(
+            "🚀 Switched to LM Studio. Make sure LM Studio is running with a model loaded"
+        )
         print("   Recommended model: qwen/qwen3-vl-30b")
         print("   Run 'python discover_models.py' to see available models")
         print("   Run 'python test_lm_studio.py' to verify connection")
