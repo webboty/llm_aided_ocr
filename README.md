@@ -44,10 +44,80 @@ To see what the LLM-Aided OCR Project can do, check out these example outputs:
 2. **OCR Processing**
    - Function: `ocr_image()`
    - Utilizes `pytesseract` for text extraction
+   - Supports multiple languages (default: English + Russian + German)
+   - Configurable via `DEFAULT_OCR_LANGUAGES` environment variable
    - Includes image preprocessing with `preprocess_image()` function:
      - Converts image to grayscale
      - Applies binary thresholding using Otsu's method
      - Performs dilation to enhance text clarity
+
+### OCR Language Management
+
+#### Installing Additional Languages
+
+To add support for more languages in Tesseract OCR:
+
+1. **Install Tesseract Language Data**:
+   ```bash
+   # On macOS with Homebrew
+   brew install tesseract-lang
+   
+   # On Ubuntu/Debian
+   sudo apt-get install tesseract-ocr-[lang]
+   
+   # On Windows
+   # Download language data files from: https://github.com/tesseract-ocr/tessdata
+   # Place .traineddata files in Tesseract tessdata directory
+   ```
+
+2. **Available Language Codes**:
+   - `eng` - English
+   - `rus` - Russian  
+   - `deu` - German
+   - `fra` - French
+   - `spa` - Spanish
+   - `ita` - Italian
+   - `por` - Portuguese
+   - `chi_sim` - Chinese Simplified
+   - `jpn` - Japanese
+   - `kor` - Korean
+   - `ara` - Arabic
+   - And many more - see full list with: `tesseract --list-langs`
+
+3. **Configure Languages**:
+   
+   **Via .env file**:
+   ```env
+   DEFAULT_OCR_LANGUAGES=eng+rus+deu+fra
+   ```
+   
+   **Via API parameters**:
+   - REST API: Include `ocr_languages` parameter
+   - MCP: Include `ocr_languages` in request
+   - Command line: Set environment variable before running
+
+#### Language Configuration Examples
+
+```env
+# English only
+DEFAULT_OCR_LANGUAGES=eng
+
+# English + Russian + German (default)
+DEFAULT_OCR_LANGUAGES=eng+rus+deu
+
+# Multilingual document (English + French + Spanish + Italian)
+DEFAULT_OCR_LANGUAGES=eng+fra+spa+ita
+
+# Asian languages
+DEFAULT_OCR_LANGUAGES=eng+chi_sim+jpn+kor
+```
+
+#### Performance Considerations
+
+- **Single Language**: Fastest processing
+- **Multiple Languages**: More accurate for multilingual documents but slower
+- **Too Many Languages**: May reduce accuracy and increase processing time
+- **Recommended**: Use only languages actually present in your documents
 
 ### Text Processing Pipeline
 
@@ -274,10 +344,11 @@ The LLM-Aided OCR project employs a multi-step process to transform raw OCR outp
 The project uses a `.env` file for configuration. Key settings include:
 
 - `USE_LOCAL_LLM`: Set to `True` to use a local LLM, `False` for API-based LLMs.
-- `API_PROVIDER`: Choose between "OPENAI" or "CLAUDE".
+- `API_PROVIDER`: Choose between "OPENAI", "CLAUDE", or "LM_STUDIO".
 - `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`: API keys for respective services.
 - `CLAUDE_MODEL_STRING`, `OPENAI_COMPLETION_MODEL`: Specify the model to use for each provider.
 - `LOCAL_LLM_CONTEXT_SIZE_IN_TOKENS`: Set the context size for local LLMs.
+- `DEFAULT_OCR_LANGUAGES`: OCR languages to use (default: "eng+rus+deu"). Use '+' to separate multiple languages (e.g., "eng+rus+deu+fra").
 
 ## Output Files
 

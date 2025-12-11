@@ -117,6 +117,7 @@ async def process_pdf_job(
     output_path: Optional[str] = None,
     provider: Optional[str] = None,
     model: Optional[str] = None,
+    ocr_languages: Optional[str] = None,
 ):
     """Background task to process PDF"""
     try:
@@ -167,6 +168,7 @@ async def process_pdf_job(
                 max_test_pages=0,
                 skip_first_n_pages=0,
                 reformat_as_markdown=True,
+                ocr_languages=ocr_languages,
             )
 
             # Update job status to completed
@@ -273,6 +275,10 @@ async def handle_list_tools() -> ListToolsResult:
                         "type": "string",
                         "description": "Model name (for lm-studio provider)",
                     },
+                    "ocr_languages": {
+                        "type": "string",
+                        "description": "OCR languages to use (e.g., 'eng+rus+deu')",
+                    },
                 },
                 "required": ["pdf_path"],
             },
@@ -340,6 +346,7 @@ async def handle_process_pdf(arguments: Dict[str, Any]) -> CallToolResult:
     output_path = arguments.get("output_path")
     provider = arguments.get("provider")
     model = arguments.get("model")
+    ocr_languages = arguments.get("ocr_languages")
 
     # Validate PDF file
     if not pdf_path or not validate_pdf_file(pdf_path):
@@ -377,7 +384,9 @@ async def handle_process_pdf(arguments: Dict[str, Any]) -> CallToolResult:
     )
 
     # Start background processing
-    asyncio.create_task(process_pdf_job(job_id, pdf_path, output_path, provider, model))
+    asyncio.create_task(
+        process_pdf_job(job_id, pdf_path, output_path, provider, model, ocr_languages)
+    )
 
     return CallToolResult(
         content=[

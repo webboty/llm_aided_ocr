@@ -33,7 +33,6 @@ from decouple import config
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from llm_aided_ocr import process_document_pipeline
-from config_helper import load_config
 
 # Setup logging
 logging.basicConfig(
@@ -102,6 +101,7 @@ class ProcessRequest(BaseModel):
     provider: Optional[str] = None
     model: Optional[str] = None
     output_path: Optional[str] = None
+    ocr_languages: Optional[str] = None
 
 
 def validate_pdf_file(file_path: str) -> bool:
@@ -185,6 +185,7 @@ async def process_pdf_job(
                 max_test_pages=0,
                 skip_first_n_pages=0,
                 reformat_as_markdown=True,
+                ocr_languages=request.ocr_languages,
             )
 
             # Output files are already returned by the pipeline function
@@ -235,12 +236,13 @@ async def health_check(credentials: HTTPAuthorizationCredentials = Security(secu
 
 @app.post("/process")
 async def process_pdf_from_path(
-    credentials: HTTPAuthorizationCredentials = Security(security),
     background_tasks: BackgroundTasks,
     pdf_path: str = Form(...),
     output_path: Optional[str] = Form(None),
     provider: Optional[str] = Form(None),
     model: Optional[str] = Form(None),
+    ocr_languages: Optional[str] = Form(None),
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ):
     """
     Process a PDF file from file path
@@ -250,6 +252,7 @@ async def process_pdf_from_path(
         output_path: Optional output path for results
         provider: Optional LLM provider (openai, claude, lm-studio)
         model: Optional model name (for lm-studio)
+        ocr_languages: Optional OCR languages (e.g., "eng+rus+deu")
 
     Returns:
         Job ID for tracking processing status
@@ -283,7 +286,7 @@ async def process_pdf_from_path(
 
     # Start background processing
     background_tasks.add_task(
-        process_pdf_job, job_id, pdf_path, output_path, provider, model
+        process_pdf_job, job_id, pdf_path, output_path, provider, model, ocr_languages
     )
 
     return {
@@ -297,12 +300,12 @@ async def process_pdf_from_path(
 
 @app.post("/upload")
 async def upload_and_process_pdf(
-    credentials: HTTPAuthorizationCredentials = Security(security),
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     output_path: Optional[str] = Form(None),
     provider: Optional[str] = Form(None),
     model: Optional[str] = Form(None),
+    credentials: HTTPAuthorizationCredentials = Security(security),
 ):
     """
     Upload and process a PDF file
@@ -371,7 +374,9 @@ async def upload_and_process_pdf(
 
 
 @app.get("/job/{job_id}")
-async def get_job_status(job_id: str, credentials: HTTPAuthorizationCredentials = Security(security)):
+async def get_job_status(
+    job_id: str, credentials: HTTPAuthorizationCredentials = Security(security)
+):
     """Get the status of a processing job"""
     if job_id not in active_jobs:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -381,7 +386,11 @@ async def get_job_status(job_id: str, credentials: HTTPAuthorizationCredentials 
 
 
 @app.get("/download/{job_id}/{filename}")
-async def download_file(job_id: str, filename: str, credentials: HTTPAuthorizationCredentials = Security(security)):
+async def download_file(
+    job_id: str,
+    filename: str,
+    credentials: HTTPAuthorizationCredentials = Security(security),
+):
     """Download a processed file"""
     if job_id not in active_jobs:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -421,7 +430,9 @@ async def list_jobs(credentials: HTTPAuthorizationCredentials = Security(securit
 
 
 @app.delete("/job/{job_id}")
-async def delete_job(job_id: str, credentials: HTTPAuthorizationCredentials = Security(security)):
+async def delete_job(
+    job_id: str, credentials: HTTPAuthorizationCredentials = Security(security)
+):
     """Delete a job and its associated files"""
     if job_id not in active_jobs:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -441,14 +452,14 @@ async def delete_job(job_id: str, credentials: HTTPAuthorizationCredentials = Se
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Log configuration
     if API_SECRET_TOKEN:
         logger.info("🔒 API authentication is enabled")
     else:
         logger.warning("⚠️  API authentication is DISABLED - anyone can access the API")
-    
+
     logger.info(f"🚀 Starting API server on {API_HOST}:{API_PORT}")
     logger.info(f"📁 Results directory: {RESULTS_DIR_PATH.absolute()}")
-    
+
     uvicorn.run(app, host=API_HOST, port=API_PORT)

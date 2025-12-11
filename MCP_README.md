@@ -68,17 +68,19 @@ Process a PDF file with OCR and LLM correction.
 - `output_path` (optional, string): Custom output path for results
 - `provider` (optional, string): LLM provider (openai, claude, lm-studio)
 - `model` (optional, string): Model name (for lm-studio provider)
+- `ocr_languages` (optional, string): OCR languages to use (e.g., "eng+rus+deu")
 
 **Returns:**
 Job ID for tracking processing status
 
 **Example:**
 ```python
-# Process a PDF file
+# Process a PDF file with custom OCR languages
 result = await client.call_tool("process_pdf", {
     "pdf_path": "/path/to/document.pdf",
     "provider": "openai",
-    "output_path": "/custom/output"
+    "output_path": "/custom/output",
+    "ocr_languages": "eng+rus+deu+fra"
 })
 ```
 

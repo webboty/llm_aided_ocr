@@ -62,6 +62,9 @@ OPENAI_MAX_TOKENS = 12000  # Maximum allowed tokens for OpenAI API
 DEFAULT_LOCAL_MODEL_NAME = "Llama-3.1-8B-Lexi-Uncensored_Q5_fixedrope.gguf"
 LOCAL_LLM_CONTEXT_SIZE_IN_TOKENS = 2048
 USE_VERBOSE = False
+DEFAULT_OCR_LANGUAGES = config.get(
+    "DEFAULT_OCR_LANGUAGES", default="eng+rus+deu", cast=str
+)
 
 openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 lm_studio_client = AsyncOpenAI(
@@ -614,9 +617,12 @@ def convert_pdf_to_images(
     return images
 
 
-def ocr_image(image):
+def ocr_image(image, languages=None):
+    if languages is None:
+        languages = DEFAULT_OCR_LANGUAGES.split("+")
     preprocessed_image = preprocess_image(image)
-    return pytesseract.image_to_string(preprocessed_image)
+    lang_config = "+".join(languages)
+    return pytesseract.image_to_string(preprocessed_image, lang=lang_config)
 
 
 async def process_chunk(
@@ -891,6 +897,7 @@ async def process_document_pipeline(
     skip_first_n_pages: int = 0,
     reformat_as_markdown: bool = True,
     suppress_headers_and_page_numbers: bool = True,
+    ocr_languages: Optional[str] = None,
 ) -> Dict[str, str]:
     """
     Complete document processing pipeline for API usage
@@ -902,6 +909,7 @@ async def process_document_pipeline(
         skip_first_n_pages: Number of pages to skip at the beginning
         reformat_as_markdown: Whether to format as markdown
         suppress_headers_and_page_numbers: Whether to suppress headers and page numbers
+        ocr_languages: OCR languages to use (e.g., "eng+rus+deu")
 
     Returns:
         Dictionary with paths to output files
@@ -948,9 +956,17 @@ async def process_document_pipeline(
         logging.info("Extracting text from converted pages...")
 
         # Extract text using OCR
+        languages = (
+            ocr_languages.split("+")
+            if ocr_languages
+            else DEFAULT_OCR_LANGUAGES.split("+")
+        )
+        logging.info(f"Using OCR languages: {'+'.join(languages)}")
         with ThreadPoolExecutor() as executor:
             list_of_extracted_text_strings = list(
-                executor.map(ocr_image, list_of_scanned_images)
+                executor.map(
+                    lambda img: ocr_image(img, languages), list_of_scanned_images
+                )
             )
         logging.info("Done extracting text from converted pages.")
         raw_ocr_output = "\n".join(list_of_extracted_text_strings)
@@ -1079,7 +1095,9 @@ async def main():
         logging.info("Extracting text from converted pages...")
         with ThreadPoolExecutor() as executor:
             list_of_extracted_text_strings = list(
-                executor.map(ocr_image, list_of_scanned_images)
+                executor.map(
+                    lambda img: ocr_image(img, ["eng", "rus"]), list_of_scanned_images
+                )
             )
         logging.info("Done extracting text from converted pages.")
         raw_ocr_output = "\n".join(list_of_extracted_text_strings)

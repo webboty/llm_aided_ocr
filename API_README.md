@@ -130,6 +130,7 @@ Process a PDF file from a file system path.
 | `output_path` | string | No | Custom output directory |
 | `provider` | string | No | LLM provider (openai, claude, lm-studio) |
 | `model` | string | No | Model name (for lm-studio) |
+| `ocr_languages` | string | No | OCR languages (e.g., "eng+rus+deu") |
 
 **Request:**
 ```bash
@@ -137,7 +138,8 @@ curl -X POST "http://localhost:8000/process" \
   -H "Authorization: Bearer TOKEN" \
   -F "pdf_path=/path/to/document.pdf" \
   -F "provider=openai" \
-  -F "output_path=/custom/output"
+  -F "output_path=/custom/output" \
+  -F "ocr_languages=eng+rus+deu"
 ```
 
 **Response (200 OK):**
