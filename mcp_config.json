@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "llm-aided-ocr": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "/Users/tonyhartmann/AI-Tools/llm_aided_ocr",
+      "env": {
+        "RESULTS_DIR": "results"
+      }
+    }
+  }
+}

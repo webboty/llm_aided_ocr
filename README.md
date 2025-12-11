@@ -403,6 +403,75 @@ For comprehensive API documentation including:
 
 👉 **See [API_README.md](API_README.md)** for complete API documentation.
 
+## MCP Server (NEW)
+
+The project now includes a Model Context Protocol (MCP) server for seamless integration with Claude Desktop and other MCP-compatible clients.
+
+### 🚀 Quick Start
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure Claude Desktop (add to claude_desktop_config.json)
+{
+  "mcpServers": {
+    "llm-aided-ocr": {
+      "command": "python",
+      "args": ["mcp_server.py"],
+      "cwd": "/path/to/llm_aided_ocr",
+      "env": {
+        "RESULTS_DIR": "results"
+      }
+    }
+  }
+}
+
+# Restart Claude Desktop and start using OCR tools!
+```
+
+### ✨ Key Features
+- **🔧 MCP Tools**: Process PDFs, check job status, manage jobs
+- **📁 MCP Resources**: Access processed files as MCP resources
+- **🤖 Claude Integration**: Native Claude Desktop support
+- **⚡ Async Processing**: Non-blocking background processing
+- **🎛️ Provider Selection**: Choose LLM provider per request
+- **📂 Job Management**: Track and manage processing jobs
+- **🔍 Error Handling**: Comprehensive error reporting
+
+### 🛠️ MCP Tools
+- `process_pdf` - Process PDF files with OCR and LLM correction
+- `get_job_status` - Check processing job status
+- `list_jobs` - List all processing jobs
+- `delete_job` - Delete jobs and cleanup files
+
+### 📡 MCP Resources
+Access processed files via MCP resource protocol:
+- `ocr://job/{job_id}/raw_ocr` - Raw OCR output
+- `ocr://job/{job_id}/corrected` - LLM-corrected markdown
+
+### 💡 Claude Desktop Usage
+Once configured, you can simply tell Claude:
+```
+Please process this PDF file: /path/to/document.pdf
+```
+
+Claude will automatically:
+1. Submit the PDF for processing
+2. Monitor the job progress
+3. Retrieve the corrected output
+4. Present the results to you
+
+### 📖 Complete Documentation
+For comprehensive MCP documentation including:
+- **Setup instructions**
+- **Tool reference**
+- **Resource access**
+- **Claude Desktop integration**
+- **Usage examples**
+- **Troubleshooting guide**
+
+👉 **See [MCP_README.md](MCP_README.md)** for complete MCP documentation.
+
 ---
 
 ## Contributing

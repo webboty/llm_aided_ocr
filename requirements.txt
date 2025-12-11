@@ -3,6 +3,7 @@ fastapi
 filelock
 langdetect
 llama-cpp-python
+mcp
 numpy
 nvgpu
 openai
