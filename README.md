@@ -25,6 +25,12 @@ To see what the LLM-Aided OCR Project can do, check out these example outputs:
 - Asynchronous processing for improved performance
 - Detailed logging for process tracking and debugging
 - GPU acceleration for local LLM inference
+- **Command-line interface** with argument support
+- **Batch processing** for multiple PDF files
+- **Provider switching** via command-line arguments
+- **Model selection** via command-line arguments
+- **File validation** and error handling
+- **Help functionality** with usage examples
 
 ## Detailed Technical Overview
 
@@ -191,6 +197,45 @@ pip install -r requirements.txt
 
 ## Usage
 
+### Command Line Interface
+
+The enhanced version now supports command-line arguments for flexible usage:
+
+#### Single PDF Processing
+```bash
+# Basic usage
+python llm_aided_ocr.py document.pdf
+
+# With specific provider
+python llm_aided_ocr.py document.pdf --provider lm-studio
+
+# With specific model (for LM Studio)
+python llm_aided_ocr.py document.pdf --provider lm-studio --model qwen/qwen3-vl-30b
+
+# Get help
+python llm_aided_ocr.py --help
+```
+
+#### Batch Processing
+```bash
+# Process all PDFs in a directory
+python batch_process.py ~/Documents/PDFs
+
+# With provider
+python batch_process.py ~/Documents/PDFs --provider lm-studio
+
+# With specific model
+python batch_process.py ~/Documents/PDFs --provider lm-studio --model qwen/qwen3-vl-30b
+```
+
+#### Available Options
+- `pdf_file`: Path to PDF file (required)
+- `--provider PROVIDER`: LLM provider (openai, claude, lm-studio)
+- `--model MODEL_NAME`: Specific LM Studio model name
+- `--help`: Show usage examples and options
+
+### Traditional Usage
+
 1. Place your PDF file in the project directory.
 
 2. Update the `input_pdf_file_path` variable in the `main()` function with your PDF filename.
@@ -281,6 +326,8 @@ LM_STUDIO_MODEL=qwen/qwen3-vl-30b
 - `config_helper.py`: Easy switching between providers
 - `test_lm_studio.py`: Connection testing and model discovery
 - `discover_models.py`: List all available models
+- `batch_process.py`: Batch processing for multiple PDF files
+- `llm_aided_ocr.py`: Enhanced with command-line argument support
 
 ---
 
