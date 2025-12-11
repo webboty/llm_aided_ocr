@@ -393,14 +393,15 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ### 📖 Complete Documentation
 For comprehensive API documentation including:
-- **Detailed configuration options**
+- **Quick start guide**
+- **Configuration options**
 - **Authentication setup**  
 - **Complete endpoint reference**
 - **Error handling guide**
 - **Integration examples** (Python, Node.js, Bash)
 - **Troubleshooting guide**
 
-👉 **See [API_INSTRUCTIONS.md](API_INSTRUCTIONS.md)** for complete API documentation.
+👉 **See [API_README.md](API_README.md)** for complete API documentation.
 
 ---
 
