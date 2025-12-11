@@ -895,7 +895,51 @@ async def main():
         # Change to script directory for relative file paths
         os.chdir(script_dir)
 
-        input_pdf_file_path = "160301289-Warren-Buffett-Katharine-Graham-Letter.pdf"
+        # Handle command line arguments
+        import sys
+
+        # Help functionality
+        if len(sys.argv) > 1 and sys.argv[1] in ["--help", "-h", "help"]:
+            print("🔧 LLM-Aided OCR - Command Line Options")
+            print("")
+            print("Usage:")
+            print(
+                "  python llm_aided_ocr.py [pdf_file] [--provider PROVIDER] [--model MODEL_NAME]"
+            )
+            print("")
+            print("Options:")
+            print("  pdf_file              Path to PDF file (required)")
+            print("  --provider PROVIDER     LLM provider (openai, claude, lm-studio)")
+            print("  --model MODEL_NAME      Specific LM Studio model name")
+            print("")
+            print("Examples:")
+            print("  python llm_aided_ocr.py my-document.pdf")
+            print("  python llm_aided_ocr.py my-document.pdf --provider lm-studio")
+            print(
+                "  python llm_aided_ocr.py my-document.pdf --provider lm-studio --model qwen/qwen3-vl-30b"
+            )
+            return
+
+        # PDF file argument
+        if len(sys.argv) > 1:
+            input_pdf_file_path = sys.argv[1]
+            # Check if file exists and is a PDF
+            if not os.path.exists(input_pdf_file_path):
+                print(f"❌ Error: File not found: {input_pdf_file_path}")
+                sys.exit(1)
+
+            # Check file extension
+            if not input_pdf_file_path.lower().endswith(".pdf"):
+                print(f"❌ Error: File must be a PDF: {input_pdf_file_path}")
+                sys.exit(1)
+
+            logging.info(
+                f"Processing PDF file from command line: {input_pdf_file_path}"
+            )
+        else:
+            input_pdf_file_path = "160301289-Warren-Buffett-Katharine-Graham-Letter.pdf"
+            logging.info("No PDF file specified, using default sample")
+
         max_test_pages = 0
         skip_first_n_pages = 0
         reformat_as_markdown = True
