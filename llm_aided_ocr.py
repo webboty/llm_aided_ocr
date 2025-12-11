@@ -884,6 +884,109 @@ EXPLANATION: [Your explanation]
         return None, None
 
 
+async def process_document_pipeline(
+    pdf_path: str,
+    output_dir: Optional[str] = None,
+    max_test_pages: int = 0,
+    skip_first_n_pages: int = 0,
+    reformat_as_markdown: bool = True,
+    suppress_headers_and_page_numbers: bool = True,
+) -> Dict[str, str]:
+    """
+    Complete document processing pipeline for API usage
+
+    Args:
+        pdf_path: Path to the PDF file
+        output_dir: Directory to save output files (defaults to current directory)
+        max_test_pages: Maximum number of pages to process (0 for all)
+        skip_first_n_pages: Number of pages to skip at the beginning
+        reformat_as_markdown: Whether to format as markdown
+        suppress_headers_and_page_numbers: Whether to suppress headers and page numbers
+
+    Returns:
+        Dictionary with paths to output files
+    """
+    logging.info(f"Starting document processing pipeline for: {pdf_path}")
+
+    # Set output directory
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        original_cwd = os.getcwd()
+        os.chdir(output_dir)
+
+    try:
+        # Download model if using local LLM
+        if USE_LOCAL_LLM:
+            _, download_status = await download_models()
+            logging.info(f"Model download status: {download_status}")
+            logging.info(f"Using Local LLM with Model: {DEFAULT_LOCAL_MODEL_NAME}")
+        else:
+            logging.info(f"Using API for completions: {API_PROVIDER}")
+            if API_PROVIDER == "LM_STUDIO":
+                logging.info(f"Using LM Studio at: {LM_STUDIO_BASE_URL}")
+                if LM_STUDIO_MODEL:
+                    logging.info(f"Using model: {LM_STUDIO_MODEL}")
+                else:
+                    logging.info("Using LM Studio's default model")
+            else:
+                logging.info(
+                    f"Using OpenAI model for embeddings: {OPENAI_EMBEDDING_MODEL}"
+                )
+
+        # Get base name for output files
+        base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+        output_extension = ".md" if reformat_as_markdown else ".txt"
+
+        raw_ocr_output_file_path = f"{base_name}__raw_ocr_output.txt"
+        llm_corrected_output_file_path = base_name + "_llm_corrected" + output_extension
+
+        # Convert PDF to images
+        list_of_scanned_images = convert_pdf_to_images(
+            pdf_path, max_test_pages, skip_first_n_pages
+        )
+        logging.info(f"Tesseract version: {pytesseract.get_tesseract_version()}")
+        logging.info("Extracting text from converted pages...")
+
+        # Extract text using OCR
+        with ThreadPoolExecutor() as executor:
+            list_of_extracted_text_strings = list(
+                executor.map(ocr_image, list_of_scanned_images)
+            )
+        logging.info("Done extracting text from converted pages.")
+        raw_ocr_output = "\n".join(list_of_extracted_text_strings)
+        with open(raw_ocr_output_file_path, "w") as f:
+            f.write(raw_ocr_output)
+        logging.info(f"Raw OCR output written to: {raw_ocr_output_file_path}")
+
+        # Process document with LLM
+        logging.info("Processing document...")
+        final_text = await process_document(
+            list_of_extracted_text_strings,
+            reformat_as_markdown,
+            suppress_headers_and_page_numbers,
+        )
+        cleaned_text = remove_corrected_text_header(final_text)
+
+        # Save the LLM corrected output
+        with open(llm_corrected_output_file_path, "w") as f:
+            f.write(cleaned_text)
+        logging.info(f"LLM Corrected text written to: {llm_corrected_output_file_path}")
+
+        # Return output file paths
+        output_files = {
+            "raw_ocr": os.path.abspath(raw_ocr_output_file_path),
+            "corrected": os.path.abspath(llm_corrected_output_file_path),
+        }
+
+        logging.info(f"Document processing completed. Output files: {output_files}")
+        return output_files
+
+    finally:
+        # Restore original working directory if we changed it
+        if output_dir:
+            os.chdir(original_cwd)
+
+
 async def main():
     try:
         # Suppress HTTP request logs

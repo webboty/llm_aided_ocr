@@ -328,6 +328,79 @@ LM_STUDIO_MODEL=qwen/qwen3-vl-30b
 - `discover_models.py`: List all available models
 - `batch_process.py`: Batch processing for multiple PDF files
 - `llm_aided_ocr.py`: Enhanced with command-line argument support
+- `api_server.py`: REST API server for web integration
+- `test_api.py`: API testing script
+
+## REST API Server (NEW)
+
+The project now includes a complete REST API server for web integration and programmatic access.
+
+### 🚀 Quick Start
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure (optional)
+echo "API_SECRET_TOKEN=your-secure-token" >> .env
+echo "API_PORT=8000" >> .env
+
+# Start API server
+python api_server.py
+```
+
+### ✨ Key Features
+- **🔐 Authentication**: Optional Bearer token security
+- **📁 File Upload**: Upload PDF files directly via HTTP
+- **📂 Path Processing**: Process PDFs from file system paths  
+- **🔄 Job Management**: Track processing status with unique job IDs
+- **⚡ Async Processing**: Non-blocking background processing
+- **💾 File Downloads**: Download processed results via API
+- **🎛️ Provider Selection**: Choose LLM provider per request
+- **📂 Output Management**: Custom output paths or default results directory
+- **⚙️ Configurable**: Host, port, and results directory settings
+
+### 📡 API Endpoints
+- `POST /process` - Process PDF from file path
+- `POST /upload` - Upload and process PDF file
+- `GET /job/{job_id}` - Get job status
+- `GET /download/{job_id}/{filename}` - Download output files
+- `GET /jobs` - List all jobs
+- `DELETE /job/{job_id}` - Delete job and files
+- `GET /health` - Health check
+
+### 💡 Usage Examples
+```bash
+# With authentication
+TOKEN="your-secure-token"
+
+# Process PDF from path
+curl -X POST "http://localhost:8000/process" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "pdf_path=/path/to/document.pdf" \
+  -F "provider=openai"
+
+# Upload and process PDF
+curl -X POST "http://localhost:8000/upload" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@document.pdf" \
+  -F "provider=lm-studio" \
+  -F "model=qwen/qwen3-vl-30b"
+
+# Check job status (returns job_id when submitted)
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8000/job/{job_id}"
+```
+
+### 📖 Complete Documentation
+For comprehensive API documentation including:
+- **Detailed configuration options**
+- **Authentication setup**  
+- **Complete endpoint reference**
+- **Error handling guide**
+- **Integration examples** (Python, Node.js, Bash)
+- **Troubleshooting guide**
+
+👉 **See [API_INSTRUCTIONS.md](API_INSTRUCTIONS.md)** for complete API documentation.
 
 ---
 
